@@ -13,10 +13,10 @@ Future Features
 
 ## Android Application 
 Main View
-![Image of Main View](https://github.com/kanestoboi/Trailer-Leveler-Software/1-Main-View.jpg)
+![Image of Main View](https://github.com/kanestoboi/Trailer-Leveler-Software/images/1-Main-View.jpg)
 
 Discover Devices View
-![Image of Discover Devices View](https://github.com/kanestoboi/Trailer-Leveler-Software/2-Discover-Devices-View.jpg)
+![Image of Discover Devices View](https://github.com/kanestoboi/Trailer-Leveler-Software/images/2-Discover-Devices-View.jpg)
 
 Adjust Trailer Measurements View
-![Image of Discover Devices View](https://github.com/kanestoboi/Trailer-Leveler-Software/3-Adjust-Trailer-Dimensions-View.jpg)
+![Image of Discover Devices View](https://github.com/kanestoboi/Trailer-Leveler-Software/images/3-Adjust-Trailer-Dimensions-View.jpg)
