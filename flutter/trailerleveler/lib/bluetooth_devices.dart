@@ -1,8 +1,23 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'dart:async';
+import 'dart:math';
+
+import 'package:flutter_blue/gen/flutterblue.pbjson.dart';
 
 FlutterBlue flutterBlue = FlutterBlue.instance;
+
+double x, y, z = 0.0;
+int xoutput = 0;
+int youtput = 0;
+int zoutput = 0;
+int minVal = -262144;
+int maxVal = 262144;
+
+double RAD_TO_DEG = 57.296;
+double PI = 3.14;
 
 class BluetoothDevices extends StatefulWidget {
   BluetoothDevices({Key key, this.title}) : super(key: key);
@@ -116,13 +131,88 @@ class _BluetoothDevicesState extends State<BluetoothDevices> {
     await device.connect();
     List<BluetoothService> services = await device.discoverServices();
 
-    await services[2].characteristics[0].setNotifyValue(true);
-    services[2].characteristics[0].value.listen((value) async {
-      if (value.length == 7) {
-        var obj = {
-          "xAngle": ((value[0] << 8) + value[1] + value[2] / 100.0),
-          "yAngle": ((value[3] << 8) + value[4] + value[5] / 100.0)
-        };
+    BluetoothCharacteristic readCharacteristic;
+
+    for (BluetoothService service in services) {
+      if (service.uuid == new Guid("76491400-7DD9-11ED-A1EB-0242AC120002")) {
+        List<BluetoothCharacteristic> characteristics = service.characteristics;
+
+        for (BluetoothCharacteristic characteristic in characteristics) {
+          if (characteristic.uuid ==
+              new Guid("76491401-7DD9-11ED-A1EB-0242AC120002")) {
+            print("Write characteristic found!!");
+            readCharacteristic = characteristic;
+          }
+        }
+      }
+
+      if (service.uuid == new Guid("0000FFE0-0000-1000-8000-00805F9B34FB")) {
+        List<BluetoothCharacteristic> characteristics = service.characteristics;
+
+        for (BluetoothCharacteristic characteristic in characteristics) {
+          if (characteristic.uuid ==
+              new Guid("0000FFE1-0000-1000-8000-00805F9B34FB")) {
+            print("Write characteristic found!!");
+            readCharacteristic = characteristic;
+          }
+        }
+      }
+    }
+
+    await readCharacteristic.setNotifyValue(true);
+    readCharacteristic.value.listen((value) async {
+      if (value.length == 12) {
+        int accX = (value[3] << 24 | value[2] << 16 | value[1] << 8 | value[0]);
+        int accY = (value[7] << 24 | value[6] << 16 | value[5] << 8 | value[4]);
+        int accZ =
+            (value[11] << 24 | value[10] << 16 | value[9] << 8 | value[8]);
+
+        int maskedN = (value[2] & (1 << 2));
+        int thebit = maskedN >> 2;
+
+        print("Value[0]" + (value[0]).toString());
+
+        if (thebit == 1) {
+          accX = accX | 0xFFFFFFFFFF000000;
+        }
+
+        print(accX);
+
+        maskedN = (value[6] & (1 << 2));
+        thebit = maskedN >> 2;
+
+        if (thebit == 1) {
+          accY = accY | 0xFFFFFFFFFF000000;
+        }
+
+        maskedN = (value[10] & (1 << 2));
+        thebit = maskedN >> 2;
+
+        if (thebit == 1) {
+          accZ = accZ | 0xFFFFFFFFFF000000;
+        }
+
+        xoutput = (0.9896 * xoutput + 0.01042 * accX).round();
+        youtput = (0.9896 * youtput + 0.01042 * accY).round();
+        zoutput = (0.9896 * zoutput + 0.01042 * accZ).round();
+
+        double xAng = map(xoutput, minVal, maxVal, -90, 90);
+        double yAng = map(youtput, minVal, maxVal, -90, 90);
+        double zAng = map(zoutput, minVal, maxVal, -90, 90);
+
+        //print(
+        //"x: $accX, y: $accY, z: $accZ, xAng: $xAng, yAng: $yAng, zAng: $zAng");
+
+        x = RAD_TO_DEG * (atan2(-yAng, -zAng) + PI);
+        //x = num.parse(x.toStringAsFixed(2));
+        y = RAD_TO_DEG * (atan2(-xAng, -zAng) + PI);
+        //y = num.parse(y.toStringAsFixed(2));
+        z = RAD_TO_DEG * (atan2(-yAng, -xAng) + PI);
+        //z = num.parse(z.toStringAsFixed(2));
+
+        var obj = {"xAngle": x, "yAngle": y, "zAngle": z};
+
+        print("x: $x, y: $y, z: $z");
 
         _streamController.sink.add(obj);
       }
@@ -130,4 +220,8 @@ class _BluetoothDevicesState extends State<BluetoothDevices> {
 
     Navigator.pop(context, stream);
   }
+}
+
+double map(int value, int low1, int high1, int low2, int high2) {
+  return low2 + ((high2 - low2) * (value - low1) / (high1 - low1));
 }

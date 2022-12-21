@@ -17,8 +17,10 @@ class AnglesPage extends StatefulWidget {
 class PageState extends State<AnglesPage> {
   double _xAngleCalibration = 0.0;
   double _yAngleCalibration = 0.0;
+  double _zAngleCalibration = 0.0;
   double _xAngle = 0.0;
   double _yAngle = 0.0;
+  double _zAngle = 0.0;
 
   double _caravanWidth = 2.4;
   double _caravanLength = 2.4;
@@ -41,13 +43,17 @@ class PageState extends State<AnglesPage> {
     _sharedPreferences = await SharedPreferences.getInstance();
 
     double xAngleSharedPreferences =
-        await _sharedPreferences.getDouble('xAngleCalibration') ?? 0;
+        _sharedPreferences.getDouble('xAngleCalibration') ?? 0;
 
     double yAngleSharedPreferences =
-        await _sharedPreferences.getDouble('yAngleCalibration') ?? 0;
+        _sharedPreferences.getDouble('yAngleCalibration') ?? 0;
+
+    double zAngleSharedPreferences =
+        _sharedPreferences.getDouble('zAngleCalibration') ?? 0;
 
     _xAngleCalibration = xAngleSharedPreferences;
     _yAngleCalibration = yAngleSharedPreferences;
+    _zAngleCalibration = zAngleSharedPreferences;
   }
 
   @override
@@ -75,6 +81,7 @@ class PageState extends State<AnglesPage> {
                                 setState(() {
                                   _xAngle = value['xAngle'];
                                   _yAngle = value['yAngle'];
+                                  _zAngle = value['zAngle'];
                                 });
                               });
                             },
@@ -101,7 +108,7 @@ class PageState extends State<AnglesPage> {
             Center(
                 child: Transform.rotate(
                     angle: pi / 180.0 * (_xAngle - _xAngleCalibration),
-                    child: Image.asset('images/camper_rear.png', width: 150))),
+                    child: Image.asset('images/camper_rear.png', width: 100))),
             Row(children: <Widget>[
               Expanded(child: getLeftHeightStringWidget()),
               Expanded(child: getRightHeightStringWidget()),
@@ -112,7 +119,7 @@ class PageState extends State<AnglesPage> {
                   child: Transform.rotate(
                       angle: pi / 180 * (_yAngle - _yAngleCalibration),
                       child:
-                          Image.asset('images/camper_side.png', width: 300))),
+                          Image.asset('images/camper_side.png', width: 150))),
             ),
             Row(children: <Widget>[
               Expanded(
@@ -143,12 +150,12 @@ class PageState extends State<AnglesPage> {
     if (horizontalReference != 'left') {
       height = num.parse(
           (tan((_xAngle - _xAngleCalibration) * pi / 180.0) * _caravanWidth)
-              .toStringAsFixed(2));
+              .toStringAsFixed(3));
     } else {
       height = 0.0;
     }
 
-    var format = new NumberFormat("##0.00", "en_US");
+    var format = new NumberFormat("##0.000", "en_US");
 
     String heightString;
     Color textColor = Colors.red;
@@ -174,12 +181,12 @@ class PageState extends State<AnglesPage> {
     if (horizontalReference != 'right') {
       height = num.parse(
           (tan((_xAngle - _xAngleCalibration) * pi / 180.0) * _caravanWidth)
-              .toStringAsFixed(2));
+              .toStringAsFixed(3));
     } else {
       height = 0.0;
     }
 
-    var format = new NumberFormat("##0.00", "en_US");
+    var format = new NumberFormat("##0.000", "en_US");
 
     String heightString;
     Color textColor = Colors.red;
@@ -204,9 +211,9 @@ class PageState extends State<AnglesPage> {
   Widget getJockyHeightWidget() {
     double height = num.parse(
         (tan((_yAngle - _yAngleCalibration) * pi / 180.0) * _caravanLength)
-            .toStringAsFixed(2));
+            .toStringAsFixed(3));
 
-    var format = new NumberFormat("##0.00", "en_US");
+    var format = new NumberFormat("##0.000", "en_US");
 
     String heightString;
     Color textColor = Colors.red;
@@ -235,8 +242,10 @@ class PageState extends State<AnglesPage> {
           await _showCalibrationDialog();
           _xAngleCalibration = _xAngle;
           _yAngleCalibration = _yAngle;
+          _zAngleCalibration = _zAngle;
           _sharedPreferences.setDouble('xAngleCalibration', _xAngleCalibration);
           _sharedPreferences.setDouble('yAngleCalibration', _yAngleCalibration);
+          _sharedPreferences.setDouble('zAngleCalibration', _zAngleCalibration);
 
           break;
         }
